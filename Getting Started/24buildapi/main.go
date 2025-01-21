@@ -90,7 +90,6 @@ func GetOneCourse(w http.ResponseWriter, r *http.Request) {
 	for _, course := range courses {
 		if course.CourseId == params["id"] {
 			json.NewEncoder(w).Encode(course)
-			return
 		}
 	}
 	json.NewEncoder(w).Encode("No course found with given id!!")
@@ -114,12 +113,19 @@ func CreateOneCourse(w http.ResponseWriter, r *http.Request) {
 
 	// todo : check only if the title is duplicate
 	// loop , title match with course.CourseName , json
+	for _, existingCourse := range courses {
+		if existingCourse.CourseName == course.CourseName {
+			json.NewEncoder(w).Encode("Course already exists!")
+			return
+		}
+	}
 
 	// Create Unique id
 	rand.Seed(time.Now().Unix())
 	course.CourseId = strconv.Itoa(rand.Intn(100))
 	// append course into Courses(db)
 	courses = append(courses, course)
+	json.NewEncoder(w).Encode("New course Created!!")
 	json.NewEncoder(w).Encode(course)
 	return
 }
@@ -129,6 +135,7 @@ func UpdateOneCourse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Body == nil {
 		json.NewEncoder(w).Encode("Please send some data")
+		return
 	}
 	// first - get id from request
 	params := mux.Vars(r)
